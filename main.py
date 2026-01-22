@@ -8,6 +8,7 @@ from renter_panel import (
     renter_dashboard, my_payments, my_complaints,
     my_profile, notifications
 )
+from init_data import initialize_database
 
 # Page configuration with full width layout
 st.set_page_config(
