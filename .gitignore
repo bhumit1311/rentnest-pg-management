@@ -34,8 +34,8 @@ ENV/
 *.sqlite
 *.sqlite3
 
-# Streamlit
-.streamlit/
+# Streamlit (allow config for deployment)
+.streamlit/secrets.toml
 
 # IDE
 .vscode/
