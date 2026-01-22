@@ -35,15 +35,15 @@ def add_test_data():
     print("\n👥 Adding Renters...")
     renters_data = [
         ("Rahul Kumar", "9876543210", "rahul@email.com", date(2025, 1, 1)),
-        ("Priya Sharma", "9876543211", "priya@email.com", date(2025, 1, 5)),
+        ("Arjun Sharma", "9876543211", "arjun@email.com", date(2025, 1, 5)),
         ("Amit Patel", "9876543212", "amit@email.com", date(2025, 1, 10)),
-        ("Sneha Reddy", "9876543213", "sneha@email.com", date(2025, 1, 15)),
+        ("Rohan Reddy", "9876543213", "rohan@email.com", date(2025, 1, 15)),
         ("Vikram Singh", "9876543214", "vikram@email.com", date(2025, 2, 1)),
-        ("Anjali Gupta", "9876543215", "anjali@email.com", date(2025, 2, 5)),
+        ("Aditya Gupta", "9876543215", "aditya@email.com", date(2025, 2, 5)),
         ("Rajesh Verma", "9876543216", "rajesh@email.com", date(2025, 2, 10)),
-        ("Pooja Joshi", "9876543217", "pooja@email.com", date(2025, 2, 15)),
+        ("Sanjay Joshi", "9876543217", "sanjay@email.com", date(2025, 2, 15)),
         ("Karan Mehta", "9876543218", "karan@email.com", date(2025, 3, 1)),
-        ("Divya Nair", "9876543219", "divya@email.com", date(2025, 3, 5)),
+        ("Nikhil Nair", "9876543219", "nikhil@email.com", date(2025, 3, 5)),
     ]
     
     for name, phone, email, join_date in renters_data:
@@ -57,13 +57,13 @@ def add_test_data():
     print("\n🛏️  Allocating Beds...")
     bed_allocations = [
         (1, 1, 1),  # Rahul -> Room 101, Bed 1
-        (2, 1, 2),  # Priya -> Room 101, Bed 2
+        (2, 1, 2),  # Arjun -> Room 101, Bed 2
         (3, 2, 1),  # Amit -> Room 102, Bed 1
-        (4, 2, 2),  # Sneha -> Room 102, Bed 2
+        (4, 2, 2),  # Rohan -> Room 102, Bed 2
         (5, 3, 1),  # Vikram -> Room 103, Bed 1
-        (6, 3, 2),  # Anjali -> Room 103, Bed 2
+        (6, 3, 2),  # Aditya -> Room 103, Bed 2
         (7, 4, 1),  # Rajesh -> Room 104, Bed 1
-        (8, 4, 2),  # Pooja -> Room 104, Bed 2
+        (8, 4, 2),  # Sanjay -> Room 104, Bed 2
     ]
     
     for renter_id, room_id, bed_number in bed_allocations:
@@ -143,15 +143,15 @@ def add_test_data():
     print("  Password: admin123")
     print("\nRenter Login (use any phone number):")
     print("  9876543210 (Rahul Kumar)")
-    print("  9876543211 (Priya Sharma)")
+    print("  9876543211 (Arjun Sharma)")
     print("  9876543212 (Amit Patel)")
-    print("  9876543213 (Sneha Reddy)")
+    print("  9876543213 (Rohan Reddy)")
     print("  9876543214 (Vikram Singh)")
-    print("  9876543215 (Anjali Gupta)")
+    print("  9876543215 (Aditya Gupta)")
     print("  9876543216 (Rajesh Verma)")
-    print("  9876543217 (Pooja Joshi)")
+    print("  9876543217 (Sanjay Joshi)")
     print("  9876543218 (Karan Mehta)")
-    print("  9876543219 (Divya Nair)")
+    print("  9876543219 (Nikhil Nair)")
     print("-" * 50)
 
 if __name__ == "__main__":
