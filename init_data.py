@@ -3,9 +3,11 @@ Auto-initialize database with test data on app startup
 This ensures data is available even after Streamlit Cloud restarts
 """
 
+import streamlit as st
 from simple_database import SimplePGDatabase
 from datetime import date, timedelta
 
+@st.cache_resource
 def initialize_database():
     """Initialize database with test data if empty"""
     db = SimplePGDatabase()
@@ -13,6 +15,7 @@ def initialize_database():
     # Check if data already exists
     rooms = db.get_all_rooms()
     if rooms:
+        print("✅ Database already has data")
         return  # Data already exists, skip initialization
     
     print("🚀 Initializing database with test data...")
