@@ -1,5 +1,24 @@
-# Simple PG Management System Requirements
-# Core Dependencies Only
+# PG Management System Requirements
+# Core Dependencies
+
+# Web Framework
 streamlit>=1.28.0
+
+# Data Processing
 pandas>=2.0.0
+
+# Visualization
 plotly>=5.15.0
+
+# Security
+bcrypt>=4.0.1
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Development Dependencies (optional)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.7.0
+flake8>=6.1.0
+mypy>=1.5.0
