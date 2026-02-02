@@ -18,7 +18,7 @@ logger = Logger.get_logger(__name__)
 config = get_config()
 
 
-def initialize_new_system():
+def initialize_new_system(overwrite=False):
     """Initialize the new system from scratch"""
     print("=" * 60)
     print("PG Management System - Initialization")
@@ -27,10 +27,11 @@ def initialize_new_system():
     
     # Check if database already exists
     if config.DB_PATH.exists():
-        response = input(f"Database '{config.DB_PATH}' already exists. Overwrite? (yes/no): ")
-        if response.lower() != 'yes':
-            print("Initialization cancelled.")
-            return False
+        if not overwrite:
+            response = input(f"Database '{config.DB_PATH}' already exists. Overwrite? (yes/no): ")
+            if response.lower() != 'yes':
+                print("Initialization cancelled.")
+                return False
         
         # Backup existing database
         backup_path = config.DB_PATH.with_suffix('.backup.db')
@@ -43,9 +44,9 @@ def initialize_new_system():
     
     print("\n1. Creating directories...")
     config.init_directories()
-    print(f"   ✓ Created: {config.UPLOAD_DIR}")
-    print(f"   ✓ Created: {config.BACKUP_DIR}")
-    print(f"   ✓ Created: {config.LOG_DIR}")
+    print(f"   [OK] Created: {config.UPLOAD_DIR}")
+    print(f"   [OK] Created: {config.BACKUP_DIR}")
+    print(f"   [OK] Created: {config.LOG_DIR}")
     
     print("\n2. Initializing database...")
     db = Database()
@@ -53,11 +54,11 @@ def initialize_new_system():
     
     print("   - Creating tables...")
     initializer.initialize_schema()
-    print("   ✓ Database schema created")
+    print("   [OK] Database schema created")
     
     print("   - Creating default admin...")
     initializer.create_default_admin()
-    print("   ✓ Default admin created")
+    print("   [OK] Default admin created")
     
     print("\n3. Verifying installation...")
     # Verify tables exist
@@ -73,10 +74,10 @@ def initialize_new_system():
     
     missing_tables = set(expected_tables) - set(tables)
     if missing_tables:
-        print(f"   ✗ Missing tables: {missing_tables}")
+        print(f"   [FAIL] Missing tables: {missing_tables}")
         return False
     
-    print(f"   ✓ All {len(expected_tables)} tables created successfully")
+    print(f"   [OK] All {len(expected_tables)} tables created successfully")
     
     print("\n4. Configuration summary:")
     print(f"   - Environment: {config.ENVIRONMENT}")
@@ -88,17 +89,17 @@ def initialize_new_system():
     # Check for configuration warnings
     warnings = config.validate()
     if warnings:
-        print("\n⚠️  Configuration Warnings:")
+        print("\n[WARNING]  Configuration Warnings:")
         for warning in warnings:
             print(f"   - {warning}")
     
     print("\n" + "=" * 60)
-    print("✅ Initialization Complete!")
+    print("[SUCCESS] Initialization Complete!")
     print("=" * 60)
     print("\nDefault Admin Credentials:")
     print("   Username: admin")
     print("   Password: admin123")
-    print("\n⚠️  IMPORTANT: Change the default password immediately!")
+    print("\n[WARNING]  IMPORTANT: Change the default password immediately!")
     print("\nTo start the application:")
     print("   streamlit run main.py")
     print("=" * 60)
@@ -153,11 +154,11 @@ def migrate_from_old_system():
                 )
                 admin_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped admin '{row['username']}': {e}")
+                print(f"   [WARNING]  Skipped admin '{row['username']}': {e}")
         
-        print(f"   ✓ Migrated {admin_count} admins")
+        print(f"   [OK] Migrated {admin_count} admins")
     except Exception as e:
-        print(f"   ✗ Error migrating admins: {e}")
+        print(f"   [FAIL] Error migrating admins: {e}")
     
     print("\n2. Migrating renters...")
     try:
@@ -174,11 +175,11 @@ def migrate_from_old_system():
                 renter_map[row['phone']] = new_id
                 renter_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped renter '{row['name']}': {e}")
+                print(f"   [WARNING]  Skipped renter '{row['name']}': {e}")
         
-        print(f"   ✓ Migrated {renter_count} renters")
+        print(f"   [OK] Migrated {renter_count} renters")
     except Exception as e:
-        print(f"   ✗ Error migrating renters: {e}")
+        print(f"   [FAIL] Error migrating renters: {e}")
     
     print("\n3. Migrating rooms...")
     try:
@@ -195,11 +196,11 @@ def migrate_from_old_system():
                 room_map[row['room_number']] = new_id
                 room_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped room '{row['room_number']}': {e}")
+                print(f"   [WARNING]  Skipped room '{row['room_number']}': {e}")
         
-        print(f"   ✓ Migrated {room_count} rooms")
+        print(f"   [OK] Migrated {room_count} rooms")
     except Exception as e:
-        print(f"   ✗ Error migrating rooms: {e}")
+        print(f"   [FAIL] Error migrating rooms: {e}")
     
     print("\n4. Migrating beds...")
     try:
@@ -224,11 +225,11 @@ def migrate_from_old_system():
                     )
                     bed_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped bed: {e}")
+                print(f"   [WARNING]  Skipped bed: {e}")
         
-        print(f"   ✓ Migrated {bed_count} beds")
+        print(f"   [OK] Migrated {bed_count} beds")
     except Exception as e:
-        print(f"   ✗ Error migrating beds: {e}")
+        print(f"   [FAIL] Error migrating beds: {e}")
     
     print("\n5. Migrating payments...")
     try:
@@ -250,11 +251,11 @@ def migrate_from_old_system():
                     )
                     payment_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped payment: {e}")
+                print(f"   [WARNING]  Skipped payment: {e}")
         
-        print(f"   ✓ Migrated {payment_count} payments")
+        print(f"   [OK] Migrated {payment_count} payments")
     except Exception as e:
-        print(f"   ✗ Error migrating payments: {e}")
+        print(f"   [FAIL] Error migrating payments: {e}")
     
     print("\n6. Migrating complaints...")
     try:
@@ -281,18 +282,18 @@ def migrate_from_old_system():
                     )
                     complaint_count += 1
             except Exception as e:
-                print(f"   ⚠️  Skipped complaint: {e}")
+                print(f"   [WARNING]  Skipped complaint: {e}")
         
-        print(f"   ✓ Migrated {complaint_count} complaints")
+        print(f"   [OK] Migrated {complaint_count} complaints")
     except Exception as e:
-        print(f"   ✗ Error migrating complaints: {e}")
+        print(f"   [FAIL] Error migrating complaints: {e}")
     
     old_conn.close()
     
     print("\n" + "=" * 60)
-    print("✅ Migration Complete!")
+    print("[SUCCESS] Migration Complete!")
     print("=" * 60)
-    print("\n⚠️  IMPORTANT:")
+    print("\n[WARNING]  IMPORTANT:")
     print("1. All passwords have been re-hashed for security")
     print("2. Admins must reset their passwords")
     print("3. Review migrated data for accuracy")
@@ -304,6 +305,16 @@ def migrate_from_old_system():
 
 def main():
     """Main entry point"""
+    import argparse
+    parser = argparse.ArgumentParser(description="PG Management System - Setup Wizard")
+    parser.add_argument('--fresh-install', action='store_true', help='Initialize a new system non-interactively.')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing database during fresh install.')
+    args = parser.parse_args()
+
+    if args.fresh_install:
+        initialize_new_system(overwrite=args.overwrite)
+        return
+
     print("\nPG Management System - Setup Wizard")
     print("=" * 60)
     print("\nChoose an option:")
@@ -311,9 +322,9 @@ def main():
     print("2. Initialize and migrate from old system")
     print("3. Exit")
     print()
-    
+
     choice = input("Enter your choice (1-3): ").strip()
-    
+
     if choice == '1':
         initialize_new_system()
     elif choice == '2':
@@ -333,5 +344,5 @@ if __name__ == "__main__":
         print("\n\nOperation cancelled by user.")
     except Exception as e:
         logger.error(f"Initialization failed: {e}", exc_info=True)
-        print(f"\n❌ Error: {e}")
+        print(f"\nError: {e}")
         print("Check logs for details.")

@@ -8,8 +8,10 @@ font = "sans serif"
 [server]
 headless = true
 port = 8501
-enableCORS = false
+enableCORS = true
 enableXsrfProtection = true
+# Disable auto-rerun on file changes
+runOnSave = false
 
 [browser]
 gatherUsageStats = false

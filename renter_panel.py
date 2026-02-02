@@ -274,7 +274,7 @@ def my_profile():
                 
                 with col1:
                     submit = st.form_submit_button("💾 Save Changes", use_container_width=True, type="primary")
-                
+
                 with col2:
                     cancel = st.form_submit_button("❌ Cancel", use_container_width=True)
                 
