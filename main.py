@@ -508,6 +508,9 @@ def main():
     # Initialize session state
     init_session_state()
     
+    # Initialize database with test data on first run (for Streamlit Cloud)
+    initialize_database()
+    
     # Check authentication
     if not st.session_state.authenticated:
         # Show login page with new branding
