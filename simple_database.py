@@ -279,6 +279,11 @@ class SimplePGDatabase:
             ''', (renter_id, month_year, amount, payment_date, payment_method))
             conn.commit()
             conn.close()
+            
+            # Create notification for renter
+            notification_message = f"Payment of ₹{amount:,.2f} for {month_year} has been recorded successfully via {payment_method}"
+            self.add_notification("Payment Confirmation", notification_message, renter_id)
+            
             return True, "Payment recorded successfully"
         except sqlite3.IntegrityError:
             return False, f"Payment for {month_year} already exists"
@@ -520,6 +525,30 @@ class SimplePGDatabase:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM notifications WHERE is_read = 0")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_renter_notifications(self, renter_id, limit=50):
+        """Get notifications for a specific renter"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT notification_id, notification_type, message, created_date, is_read
+            FROM notifications
+            WHERE renter_id = ?
+            ORDER BY is_read ASC, created_date DESC
+            LIMIT ?
+        ''', (renter_id, limit))
+        notifications = cursor.fetchall()
+        conn.close()
+        return notifications
+    
+    def get_renter_unread_count(self, renter_id):
+        """Get count of unread notifications for a renter"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM notifications WHERE renter_id = ? AND is_read = 0", (renter_id,))
         count = cursor.fetchone()[0]
         conn.close()
         return count

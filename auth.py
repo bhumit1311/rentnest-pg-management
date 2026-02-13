@@ -1,8 +1,7 @@
 import streamlit as st
 from datetime import datetime
 
-from db.database import Database
-from services.auth_service import AuthService
+from simple_database import SimplePGDatabase
 from session_manager import SessionManager
 
 
@@ -62,26 +61,25 @@ def login_page():
             submit = st.form_submit_button("Login as Admin")
 
             if submit:
-                try:
-                    db = Database()
-                    auth_service = AuthService(db)
-
-                    success, user_data, message = auth_service.authenticate_admin(username, password)
-
-                    if success and user_data:
+                if username and password:
+                    db = SimplePGDatabase()
+                    admin = db.authenticate_admin(username, password)
+                    
+                    if admin:
+                        # admin tuple: (admin_id, username, password, name)
                         SessionManager.save_login(
-                            user_id=user_data['user_id'],
+                            user_id=admin[0],
                             user_type="admin",
-                            user_name=user_data['name'],
-                            username=username,
+                            user_name=admin[3],
+                            username=admin[1],
                         )
                         st.session_state.authenticated = True
-                        st.success(message)
+                        st.success("✅ Login successful!")
                         st.rerun()
                     else:
-                        st.error(message)
-                except Exception as e:
-                    st.error(f"Login failed: {str(e)}")
+                        st.error("❌ Invalid username or password")
+                else:
+                    st.warning("⚠️ Please enter both username and password")
 
     # -------- Renter Login --------
     with tab2:
@@ -90,25 +88,24 @@ def login_page():
             submit = st.form_submit_button("Login as Renter")
 
             if submit:
-                try:
-                    db = Database()
-                    auth_service = AuthService(db)
-
-                    success, user_data, message = auth_service.authenticate_renter(phone)
-
-                    if success and user_data:
+                if phone:
+                    db = SimplePGDatabase()
+                    renter = db.authenticate_renter(phone)
+                    
+                    if renter:
+                        # renter tuple: (renter_id, name, phone, email, join_date, is_active)
                         SessionManager.save_login(
-                            user_id=user_data['user_id'],
+                            user_id=renter[0],
                             user_type="renter",
-                            user_name=user_data['name'],
+                            user_name=renter[1],
                         )
                         st.session_state.authenticated = True
-                        st.success(message)
+                        st.success(f"✅ Welcome, {renter[1]}!")
                         st.rerun()
                     else:
-                        st.error(message)
-                except Exception as e:
-                    st.error(f"Login failed: {str(e)}")
+                        st.error("❌ Phone number not found or account inactive")
+                else:
+                    st.warning("⚠️ Please enter your phone number")
 
     # -------- Registration --------
     with tab3:
@@ -130,21 +127,17 @@ def login_page():
 
             if submit:
                 if name and phone:
-                    try:
-                        db = Database()
-                        auth_service = AuthService(db)
-
-                        success, message = auth_service.register_renter(
-                            name, phone, email, join_date.strftime("%Y-%m-%d")
-                        )
-                        if success:
-                            st.success(f"✅ {message}")
-                        else:
-                            st.error(message)
-                    except Exception as e:
-                        st.error(f"Registration failed: {str(e)}")
+                    db = SimplePGDatabase()
+                    success, message = db.add_renter(
+                        name, phone, email if email else None, join_date.strftime("%Y-%m-%d")
+                    )
+                    if success:
+                        st.success(f"✅ {message}")
+                        st.info("You can now login using your phone number")
+                    else:
+                        st.error(f"❌ {message}")
                 else:
-                    st.error("Please fill required fields (*)")
+                    st.warning("⚠️ Please fill required fields (Name and Phone Number)")
 
 
 # --------------------------------------------------
@@ -161,19 +154,11 @@ def logout():
 # 5️⃣ AUTH REQUIREMENT (USE EVERYWHERE)
 # --------------------------------------------------
 def require_auth(required_type=None):
+    """Check if user is authenticated and has required user type"""
     if not st.session_state.authenticated:
-        st.error("Please login")
+        st.error("⚠️ Please login to access this page")
         st.stop()
 
-    if required_type:
-        try:
-            db = Database()
-            auth_service = AuthService(db)
-
-            if required_type == "admin":
-                auth_service.require_admin(st.session_state.user_type, st.session_state.user_id)
-            elif required_type == "renter":
-                auth_service.require_renter(st.session_state.user_type, st.session_state.user_id)
-        except Exception as e:
-            st.error(f"Authorization failed: {str(e)}")
-            st.stop()
+    if required_type and st.session_state.user_type != required_type:
+        st.error(f"⚠️ Access denied. This page requires {required_type} access.")
+        st.stop()

@@ -415,7 +415,7 @@ def show_navigation_menu():
             "📝 Complaints": "complaints",
             "📊 Reports": "reports"
         }
-    else:
+    else: 
         nav_items = {
             "🏠 My Dashboard": "dashboard",
             "💰 My Payments": "payments",

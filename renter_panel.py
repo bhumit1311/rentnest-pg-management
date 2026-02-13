@@ -11,6 +11,11 @@ def renter_dashboard():
     db = SimplePGDatabase()
     renter_details = db.get_renter_details(st.session_state.user_id)
     
+    # Check for unread notifications
+    unread_count = db.get_renter_unread_count(st.session_state.user_id)
+    if unread_count > 0:
+        st.warning(f"🔔 You have {unread_count} unread notification{'s' if unread_count > 1 else ''}! Check the Notifications page.")
+    
     if renter_details:
         st.markdown(f"""
         <div style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
@@ -309,11 +314,70 @@ def my_profile():
 def notifications():
     """Renter notifications view"""
     st.title("🔔 Notifications")
-    st.info("ℹ️ Notifications will appear here when admin responds to your complaints or makes important announcements")
     
-    st.markdown("""
-    <div style="text-align: center; padding: 2rem;">
-        <p>📬 Check your complaints section for admin responses</p>
-        <p>💬 All complaint updates are tracked in the complaints tab</p>
-    </div>
-    """, unsafe_allow_html=True)
+    db = SimplePGDatabase()
+    
+    # Get unread count
+    unread_count = db.get_renter_unread_count(st.session_state.user_id)
+    
+    if unread_count > 0:
+        st.warning(f"📬 You have {unread_count} unread notification{'s' if unread_count > 1 else ''}")
+    
+    # Get all notifications
+    notifications = db.get_renter_notifications(st.session_state.user_id, limit=50)
+    
+    if notifications:
+        st.markdown("---")
+        
+        # Display notifications
+        for notif in notifications:
+            notif_id, notif_type, message, created_date, is_read = notif
+            
+            # Icon and background based on read status
+            icon = "📬" if not is_read else "✅"
+            bg_color = "#fff3cd" if not is_read else "#f8f9fa"
+            border_color = "#667eea" if not is_read else "#dee2e6"
+            
+            # Type-specific icons
+            type_icon = {
+                "Payment Confirmation": "💰",
+                "Payment Reminder": "⏰",
+                "Profile Update": "👤",
+                "Room Update": "🏠",
+                "General": "📢"
+            }.get(notif_type, "📢")
+            
+            col1, col2 = st.columns([5, 1])
+            
+            with col1:
+                st.markdown(f"""
+                <div style="background: {bg_color}; padding: 1rem; border-radius: 10px; 
+                            margin-bottom: 0.75rem; border-left: 4px solid {border_color};">
+                    {icon} {type_icon} <strong>{notif_type}</strong><br>
+                    {message}<br>
+                    <small style="color: #6c757d;">📅 {created_date}</small>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                if not is_read:
+                    if st.button("Mark Read", key=f"mark_read_{notif_id}", use_container_width=True):
+                        db.mark_notification_read(notif_id)
+                        st.rerun()
+        
+        # Show count
+        st.info(f"📊 Showing {len(notifications)} notification{'s' if len(notifications) != 1 else ''}")
+    else:
+        st.info("📭 No notifications yet")
+        st.markdown("""
+        <div style="text-align: center; padding: 2rem;">
+            <p>You'll receive notifications here for:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>💰 Payment confirmations</li>
+                <li>📝 Complaint responses from admin</li>
+                <li>🏠 Room or bed allocation updates</li>
+                <li>📢 Important announcements</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
