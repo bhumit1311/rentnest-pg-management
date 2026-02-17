@@ -66,17 +66,7 @@ def admin_dashboard():
     else:
         st.info("No notifications yet")
     
-    st.markdown("---")
-    
-    # Simple chart
-    if stats['total_beds'] > 0:
-        fig = go.Figure(data=[go.Pie(
-            labels=['Occupied', 'Empty'],
-            values=[stats['occupied_beds'], stats['empty_beds']],
-            hole=0.4
-        )])
-        fig.update_layout(title='Bed Occupancy')
-        st.plotly_chart(fig, use_container_width=True)
+
 
 def room_management():
     """Simple room management"""
@@ -468,7 +458,7 @@ def reports():
     
     db = SimplePGDatabase()
     
-    report_type = st.selectbox("Select Report", ["Occupancy", "Revenue", "Renters"])
+    report_type = st.selectbox("Select Report", ["Occupancy", "Renters", "Revenue"])
     
     if report_type == "Occupancy":
         rooms = db.get_all_rooms()
@@ -487,23 +477,6 @@ def reports():
             
             df = pd.DataFrame(data)
             st.dataframe(df, use_container_width=True)
-            
-            fig = px.bar(df, x='Room', y=['Occupied', 'Empty'], 
-                        title='Bed Occupancy by Room')
-            st.plotly_chart(fig, use_container_width=True)
-    
-    elif report_type == "Revenue":
-        payments = db.get_all_payments()
-        if payments:
-            df = pd.DataFrame(payments, columns=['ID', 'Renter', 'Month', 'Amount', 'Date', 'Method'])
-            
-            monthly = df.groupby('Month')['Amount'].sum().reset_index()
-            
-            fig = px.line(monthly, x='Month', y='Amount', 
-                         title='Monthly Revenue Trend')
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.dataframe(df, use_container_width=True)
     
     elif report_type == "Renters":
         renters = db.get_all_renters()
@@ -511,3 +484,20 @@ def reports():
             df = pd.DataFrame(renters, columns=['ID', 'Name', 'Phone', 'Email', 'Join Date', 'Active'])
             df['Active'] = df['Active'].map({1: 'Yes', 0: 'No'})
             st.dataframe(df, use_container_width=True)
+    
+    elif report_type == "Revenue":
+        st.subheader("Monthly Revenue Summary")
+        
+        revenue_records = db.get_all_revenue()
+        
+        if revenue_records:
+            df = pd.DataFrame(revenue_records, columns=['Month', 'Total Revenue', 'Payments', 'Occupancy %', 'Last Updated'])
+            df['Total Revenue'] = df['Total Revenue'].apply(lambda x: f'₹{x:,.2f}')
+            df['Occupancy %'] = df['Occupancy %'].apply(lambda x: f'{x:.1f}%')
+            st.dataframe(df, use_container_width=True)
+            
+            # Display total revenue across all months
+            total = sum([r[1] for r in revenue_records])
+            st.metric("Total Revenue (All Time)", f"₹{total:,.2f}")
+        else:
+            st.info("No revenue data available yet. Revenue data is automatically generated when payments are recorded.")

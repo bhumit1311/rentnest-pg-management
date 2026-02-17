@@ -108,6 +108,19 @@ class SimplePGDatabase:
             )
         ''')
         
+        # 8. REVENUE TABLE - For monthly revenue tracking
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS revenue (
+                revenue_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                month_year TEXT UNIQUE NOT NULL,
+                total_revenue REAL DEFAULT 0,
+                total_payments INTEGER DEFAULT 0,
+                occupancy_rate REAL DEFAULT 0,
+                created_date DATETIME NOT NULL,
+                updated_date DATETIME NOT NULL
+            )
+        ''')
+        
         # Insert default admin if not exists
         cursor.execute("SELECT COUNT(*) FROM admins WHERE username = 'admin'")
         if cursor.fetchone()[0] == 0:
@@ -283,6 +296,9 @@ class SimplePGDatabase:
             # Create notification for renter
             notification_message = f"Payment of ₹{amount:,.2f} for {month_year} has been recorded successfully via {payment_method}"
             self.add_notification("Payment Confirmation", notification_message, renter_id)
+            
+            # Update revenue data for this month
+            self.update_revenue_data(month_year)
             
             return True, "Payment recorded successfully"
         except sqlite3.IntegrityError:
@@ -552,3 +568,82 @@ class SimplePGDatabase:
         count = cursor.fetchone()[0]
         conn.close()
         return count
+    
+    # REVENUE METHODS
+    def update_revenue_data(self, month_year):
+        """Update or create revenue data for a specific month"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Calculate total revenue for the month
+            cursor.execute('''
+                SELECT COUNT(*), COALESCE(SUM(amount), 0)
+                FROM payments
+                WHERE month_year = ?
+            ''', (month_year,))
+            
+            result = cursor.fetchone()
+            total_payments = result[0]
+            total_revenue = result[1]
+            
+            # Calculate occupancy rate
+            cursor.execute("SELECT COUNT(*) FROM beds")
+            total_beds = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM beds WHERE is_occupied = TRUE")
+            occupied_beds = cursor.fetchone()[0]
+            
+            occupancy_rate = (occupied_beds / total_beds * 100) if total_beds > 0 else 0
+            
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Check if revenue record exists
+            cursor.execute("SELECT revenue_id FROM revenue WHERE month_year = ?", (month_year,))
+            existing = cursor.fetchone()
+            
+            if existing:
+                # Update existing record
+                cursor.execute('''
+                    UPDATE revenue
+                    SET total_revenue = ?, total_payments = ?, occupancy_rate = ?, updated_date = ?
+                    WHERE month_year = ?
+                ''', (total_revenue, total_payments, occupancy_rate, current_time, month_year))
+            else:
+                # Create new record
+                cursor.execute('''
+                    INSERT INTO revenue (month_year, total_revenue, total_payments, occupancy_rate, created_date, updated_date)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (month_year, total_revenue, total_payments, occupancy_rate, current_time, current_time))
+            
+            conn.commit()
+            conn.close()
+            return True, "Revenue data updated successfully"
+        except Exception as e:
+            return False, f"Error: {str(e)}"
+    
+    def get_revenue_summary(self, month_year):
+        """Get revenue summary for a specific month"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT month_year, total_revenue, total_payments, occupancy_rate, updated_date
+            FROM revenue
+            WHERE month_year = ?
+        ''', (month_year,))
+        summary = cursor.fetchone()
+        conn.close()
+        return summary
+    
+    def get_all_revenue(self):
+        """Get all revenue records"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT month_year, total_revenue, total_payments, occupancy_rate, updated_date
+            FROM revenue
+            ORDER BY month_year DESC
+        ''')
+        revenue_records = cursor.fetchall()
+        conn.close()
+        return revenue_records
