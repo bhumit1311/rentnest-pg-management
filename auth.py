@@ -134,6 +134,11 @@ def login_page():
                     if success:
                         st.success(f"✅ {message}")
                         st.info("You can now login using your phone number")
+                        # 🔔 Notify admin about new registration
+                        db.add_notification(
+                            notification_type="New User Registered",
+                            message=f"New renter '{name}' (📱 {phone}) has registered and is awaiting bed allocation."
+                        )
                     else:
                         st.error(f"❌ {message}")
                 else:
